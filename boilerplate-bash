@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+shopt -s -o errexit nounset noclobber pipefail
+shopt -s extglob globstar lastpipe patsub_replacement
+cat << EOF
+#!/usr/bin/env bash
+# https://github.com/Summertime/boilerplate-bash
+APP_ID=$(systemd-id128 new)
+BASH_COMPAT=${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}
+EOF
+cat << 'EOF'
+if 
+	[[ ${BASH_COMPAT%.*} -gt ${BASH_VERSINFO[0]}	
+	|| ${BASH_COMPAT%.*} -eq ${BASH_VERSINFO[0]} 
+	&& ${BASH_COMPAT#*.} -gt ${BASH_VERSINFO[1]}
+	]]
+then
+	>&2 printf "Error: Bash's version is %s but script wants %s" \
+		"${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}" \
+		"$BASH_COMPAT"
+	exit 1
+fi
+shopt -s -o errexit nounset noclobber pipefail
+shopt -s extglob globstar lastpipe patsub_replacement
+BOOT_ID=$(systemd-id128 boot-id --app-specific="$APP_ID")
+MACHINE_ID=$(systemd-id128 machine-id --app-specific="$APP_ID")
+# INVOCATION_ID=$(systemd-id128 invocation-id) # For services
+: ${XDG_DATA_HOME:=$HOME/.local/share}
+: ${XDG_CONFIG_HOME:=$HOME/.config}
+: ${XDG_STATE_HOME:=$HOME/.local/state}
+: ${XDG_DATA_DIRS:=/usr/local/share/:/usr/share/}
+: ${XDG_CONFIG_DIRS:=/etc/xdg}
+: ${XDG_CACHE_HOME:=$HOME/.cache}
+: ${XDG_RUNTIME_DIR:=$HOME/.local/state/runtime}
+declare -a TRAP_EXIT=()
+trap 'for A in "${TRAP_EXIT[@]}";do eval "$A";done' EXIT
+EOF
+
