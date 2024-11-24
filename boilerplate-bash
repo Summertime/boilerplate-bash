@@ -33,5 +33,5 @@ MACHINE_ID=$(systemd-id128 machine-id --app-specific="$APP_ID")
 : ${XDG_RUNTIME_DIR:=$HOME/.local/state/runtime}
 declare -a TRAP_EXIT=()
 trap 'for A in "${TRAP_EXIT[@]}";do eval "$A";done' EXIT
+at-exit () { TRAP_EXIT+=( "${*@Q}" ); }
 EOF
-
